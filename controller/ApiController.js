@@ -30,22 +30,17 @@ function groupRecordsByProduct(records) {
 }
 
 function sumOfProductPerMonth(productDict){
-    let productsSum = {};
+    let sum = 0;
+    let size = 0;
     for(let key in productDict){
-        let values = productDict[key];
-        let sum = 0;
-        let price = 0;
-
-        values.forEach(function(record){
-            sum += record.sa_quantity;
-            price = price == 0 ? record.price : price;
-        });
-        productsSum["_"+key] = {
-            quantity: sum,
-            total: sum * price
-        };
+        let record = productDict[key];
+        sum += record.price == "" ? 0 : record.sa_quantity * record.price;
+        if(record.price != "") size++;
     }
-    return productsSum;
+    return {
+        total: sum,
+        quantity: size
+    };
 }
 
 ApiController.fetchMonthRecords = function(callback) {
@@ -73,13 +68,10 @@ ApiController.fetchMonthRecords = function(callback) {
 
 ApiController.fetchMonthRecordsStadistics = function(callback) {
     this.fetchMonthRecords(function(recordsObj){
-        let firstProductGroup = groupRecordsByProduct(recordsObj.first.obj);
-        let secondProductGroup = groupRecordsByProduct(recordsObj.second.obj);
-        let thirdProductGroup = groupRecordsByProduct(recordsObj.third.obj);
 
-        let firstSum = sumOfProductPerMonth(firstProductGroup);
-        let secondSum = sumOfProductPerMonth(secondProductGroup);
-        let thirdSum = sumOfProductPerMonth(thirdProductGroup);
+        let firstSum = sumOfProductPerMonth(recordsObj.first.records);
+        let secondSum = sumOfProductPerMonth(recordsObj.second.records);
+        let thirdSum = sumOfProductPerMonth(recordsObj.third.records);
 
         callback({
             first: {
